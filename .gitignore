@@ -10,8 +10,8 @@ logs/
 
 node_modules
 
-# Ignore employee exports
-employees.pdf/
-employees.Excel/
+# Ignore specific export files
+employees.pdf
+employees.Excel
 *.pdf
 *.xlsx
