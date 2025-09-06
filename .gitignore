@@ -9,3 +9,6 @@ logs/
 *.loga
 
 node_modules
+
+/employees.pdf
+/employees.Excel
