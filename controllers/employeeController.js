@@ -1,6 +1,7 @@
 const handlerFactory = require("./handlerFactoryController");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const logger = require("../utils/logger");
 const XLSX = require("xlsx");
 const path = require("path");
 const Employee = require("../models/employeeModel");
@@ -201,7 +202,9 @@ exports.importEmployeesFromExcel = async (req, res) => {
     }));
 
     const createdEmployees = await Employee.insertMany(employeesData);
-
+    logger.info(
+      `${req.admin.name} imported ${createdEmployees.length} employees from Excel`
+    );
     fs.unlinkSync(file.path);
 
     res.status(201).json({
@@ -212,6 +215,7 @@ exports.importEmployeesFromExcel = async (req, res) => {
     });
   } catch (err) {
     if (file) fs.unlinkSync(file.path);
+    logger.error(`Error importing employees from Excel: ${err.message}`); // Logging error
     res.status(500).json({ status: "fail", message: err.message });
   }
 };
@@ -260,7 +264,9 @@ exports.exportEmployeesToCSV = async (req, res, next) => {
     const rows = employees
       .map(
         (emp) =>
-          `${emp.name},${emp.email},${emp.department ? emp.department.name : ""},${emp.salary}`
+          `${emp.name},${emp.email},${
+            emp.department ? emp.department.name : ""
+          },${emp.salary}`
       )
       .join("\n");
     const csvData = header + rows;

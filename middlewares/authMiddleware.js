@@ -68,6 +68,7 @@ exports.adminProtect = catchAsync(async (request, response, next) => {
 
   admin.password = undefined;
   request.admin = admin;
+  
 
   next();
 });
