@@ -121,9 +121,9 @@ SECRET=secret
 EXPIRATION=90d
 
 # Email settings (add as needed for nodemailer)
-EMAIL_USER=your_email@example.com
-EMAIL_PASS=your_email_password
-EMAIL_HOST=smtp.example.com
+EMAIL_USER=125moatef@gmail.com
+EMAIL_PASSWORD=jwno fezq rhxi vzbu
+EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 ```
 
