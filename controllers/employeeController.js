@@ -17,23 +17,29 @@ exports.updateEmployee = handlerFactory.updateOne(Employee);
 exports.deleteEmployee = handlerFactory.deleteOne(Employee);
 exports.createEmployee = handlerFactory.createOne(Employee);
 
+// Export employees to PDF with optional department filter
 exports.exportEmployeesToPDF = async (req, res, next) => {
   try {
-    const employees = await Employee.find().populate({
+    const { department } = req.query;
+
+    // Filter employees by department if provided
+    const query = department ? { department } : {};
+    const employees = await Employee.find(query).populate({
       path: "department",
       select: "name -_id",
     });
 
-    const folderPath = path.join(__dirname, "../employees.pdf");
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
+    if (!employees.length) {
+      return res.status(404).json({ message: "No employees found" });
     }
 
-    const fileName = `employees_${Date.now()}.pdf`;
+    const folderPath = path.join(__dirname, "../employees.pdf");
+    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+
+    const fileName = `employees_${department || "all"}_${Date.now()}.pdf`;
     const filePath = path.join(folderPath, fileName);
 
     const doc = new PDFDocument({ margin: 30, size: "A4" });
-
     doc.pipe(fs.createWriteStream(filePath));
 
     // Title
@@ -49,11 +55,10 @@ exports.exportEmployeesToPDF = async (req, res, next) => {
     doc.text("Salary", 450, headerY);
     doc.moveDown();
 
-    // Rows
+    // Table rows
     doc.font("Helvetica");
     let y = doc.y + 5;
     const rowHeight = 20;
-
     employees.forEach((emp) => {
       doc.text(emp.name, 50, y);
       doc.text(emp.email, 150, y);
@@ -73,28 +78,33 @@ exports.exportEmployeesToPDF = async (req, res, next) => {
     next(err);
   }
 };
+
+// Export employees to Excel with optional department filter
 exports.exportEmployeesToExcel = async (req, res, next) => {
   try {
-    const employees = await Employee.find().populate({
+    const { department } = req.query;
+
+    // Filter employees by department if provided
+    const query = department ? { department } : {};
+    const employees = await Employee.find(query).populate({
       path: "department",
       select: "name -_id",
     });
 
-    // Create folder if it doesn't exist
-    const folderPath = path.join(__dirname, "../employees.Excel");
-    if (!fs.existsSync(folderPath)) {
-      fs.mkdirSync(folderPath);
+    if (!employees.length) {
+      return res.status(404).json({ message: "No employees found" });
     }
 
-    // File name with timestamp
-    const fileName = `employees_${Date.now()}.xlsx`;
+    const folderPath = path.join(__dirname, "../employees.Excel");
+    if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath);
+
+    const fileName = `employees_${department || "all"}_${Date.now()}.xlsx`;
     const filePath = path.join(folderPath, fileName);
 
-    // Create workbook and worksheet
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Employees");
 
-    // Add columns
+    // Add columns and make header bold
     worksheet.columns = [
       { header: "Name", key: "name", width: 30 },
       { header: "Email", key: "email", width: 30 },
@@ -125,6 +135,7 @@ exports.exportEmployeesToExcel = async (req, res, next) => {
     next(err);
   }
 };
+
 exports.importEmployeesFromExcel = async (req, res) => {
   let file;
   try {
@@ -222,5 +233,58 @@ exports.getMyProfile = async (req, res) => {
       status: "fail",
       message: error,
     });
+  }
+};
+exports.exportEmployeesToCSV = async (req, res, next) => {
+  try {
+    const { department } = req.query;
+
+    // Filter employees by department if provided
+    let query = {};
+    if (department) {
+      query = { department };
+    }
+
+    // Fetch employees from the database with populated department name
+    const employees = await Employee.find(query).populate({
+      path: "department",
+      select: "name -_id",
+    });
+
+    if (!employees.length) {
+      return res.status(404).json({ message: "No employees found" });
+    }
+
+    // Prepare CSV data
+    const header = "Name,Email,Department,Salary\n";
+    const rows = employees
+      .map(
+        (emp) =>
+          `${emp.name},${emp.email},${emp.department ? emp.department.name : ""},${emp.salary}`
+      )
+      .join("\n");
+    const csvData = header + rows;
+
+    // Create folder if it doesn't exist
+    const folderPath = path.join(__dirname, "../employees.CSV");
+    if (!fs.existsSync(folderPath)) {
+      fs.mkdirSync(folderPath);
+    }
+
+    // Generate filename with timestamp
+    const fileName = `employees_${department || "all"}_${Date.now()}.csv`;
+    const filePath = path.join(folderPath, fileName);
+
+    // Save CSV file
+    fs.writeFileSync(filePath, csvData);
+
+    // Respond with file path
+    res.status(200).json({
+      status: "success",
+      message: "CSV file saved successfully",
+      file: filePath,
+    });
+  } catch (err) {
+    next(err);
   }
 };

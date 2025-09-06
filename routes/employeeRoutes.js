@@ -12,16 +12,44 @@ const multer = require("multer");
  */
 /**
  * @swagger
+ * /api/v1/employees/export-csv:
+ *   get:
+ *     summary: Export employees to CSV, optionally filter by department
+ *     tags: [Employees]
+ *     parameters:
+ *       - in: query
+ *         name: department
+ *         schema:
+ *           type: string
+ *         description: Department ID to filter employees
+ *     responses:
+ *       200:
+ *         description: CSV file generated successfully
+ *         content:
+ *           text/csv:
+ *             schema:
+ *               type: string
+ *               format: binary
+ */
+router.get("/export-csv", authMiddleware.adminProtect, employeeController.exportEmployeesToCSV);
+
+/**
+ * @swagger
  * /api/v1/employees/export-excel:
  *   get:
- *     summary: Export all employees to Excel
+ *     summary: Export employees to Excel, optionally filter by department
  *     tags: [Employees]
- *     description: Generate and download a Excel containing all employee data.
+ *     parameters:
+ *       - in: query
+ *         name: department
+ *         schema:
+ *           type: string
+ *         description: Department ID to filter employees
  *     responses:
  *       200:
  *         description: Excel file generated successfully
  *         content:
- *           application/Excel:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
  *             schema:
  *               type: string
  *               format: binary
@@ -29,14 +57,24 @@ const multer = require("multer");
  *         description: Server error
  */
 
-router.get("/export-excel", authMiddleware.adminProtect,employeeController.exportEmployeesToExcel);
+router.get(
+  "/export-excel",
+  authMiddleware.adminProtect,
+  employeeController.exportEmployeesToExcel
+);
+
 /**
  * @swagger
  * /api/v1/employees/export-pdf:
  *   get:
- *     summary: Export all employees to PDF
+ *     summary: Export employees to PDF, optionally filter by department
  *     tags: [Employees]
- *     description: Generate and download a PDF containing all employee data.
+ *     parameters:
+ *       - in: query
+ *         name: department
+ *         schema:
+ *           type: string
+ *         description: Department ID to filter employees
  *     responses:
  *       200:
  *         description: PDF file generated successfully
@@ -48,8 +86,11 @@ router.get("/export-excel", authMiddleware.adminProtect,employeeController.expor
  *       500:
  *         description: Server error
  */
-
-router.get("/export-pdf",authMiddleware.adminProtect, employeeController.exportEmployeesToPDF);
+router.get(
+  "/export-pdf",
+  authMiddleware.adminProtect,
+  employeeController.exportEmployeesToPDF
+);
 const upload = multer({ dest: "uploads/" });
 /**
  * @swagger
@@ -142,7 +183,8 @@ const upload = multer({ dest: "uploads/" });
  */
 
 router.post(
-  "/import-excel",authMiddleware.adminProtect,
+  "/import-excel",
+  authMiddleware.adminProtect,
   upload.single("file"),
   employeeController.importEmployeesFromExcel
 );
@@ -227,7 +269,11 @@ router.post(
  *                             example: IT
  */
 
-router.get("/", authMiddleware.adminProtect,employeeController.getAllEmployees);
+router.get(
+  "/",
+  authMiddleware.adminProtect,
+  employeeController.getAllEmployees
+);
 /**
  * @swagger
  * /api/v1/employees:
@@ -303,7 +349,11 @@ router.get("/", authMiddleware.adminProtect,employeeController.getAllEmployees);
  *       500:
  *         description: Server error
  */
-router.post("/",authMiddleware.adminProtect, employeeController.createEmployee);
+router.post(
+  "/",
+  authMiddleware.adminProtect,
+  employeeController.createEmployee
+);
 /**
  * @swagger
  * /api/v1/employees/me:
@@ -348,7 +398,11 @@ router.post("/",authMiddleware.adminProtect, employeeController.createEmployee);
  *                           type: number
  *                           example: 30
  */
-router.get("/me",authMiddleware.employeeProtect, employeeController.getMyProfile);
+router.get(
+  "/me",
+  authMiddleware.employeeProtect,
+  employeeController.getMyProfile
+);
 
 /**
  * @swagger
@@ -369,7 +423,7 @@ router.get("/me",authMiddleware.employeeProtect, employeeController.getMyProfile
  *       404:
  *         description: Employee not found
  */
-router.get("/:id",authMiddleware.adminProtect, employeeController.getEmployee);
+router.get("/:id", authMiddleware.adminProtect, employeeController.getEmployee);
 
 /**
  * @swagger
@@ -407,7 +461,11 @@ router.get("/:id",authMiddleware.adminProtect, employeeController.getEmployee);
  *       404:
  *         description: Employee not found
  */
-router.put("/:id",authMiddleware.adminProtect, employeeController.updateEmployee);
+router.put(
+  "/:id",
+  authMiddleware.adminProtect,
+  employeeController.updateEmployee
+);
 
 /**
  * @swagger
@@ -428,6 +486,10 @@ router.put("/:id",authMiddleware.adminProtect, employeeController.updateEmployee
  *       404:
  *         description: Employee not found
  */
-router.delete("/:id",authMiddleware.adminProtect, employeeController.deleteEmployee);
+router.delete(
+  "/:id",
+  authMiddleware.adminProtect,
+  employeeController.deleteEmployee
+);
 
 module.exports = router;
